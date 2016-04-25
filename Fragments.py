@@ -1,11 +1,49 @@
 import os
 import re
+import PIL
 import string
+import autopep8 
+import threading
+import pytesseract
 from tkinter import *
 from tkinter import ttk
+from threading import Thread
 from inspect import getsourcefile
 from subprocess import Popen, PIPE, STDOUT
 import tkinter.messagebox,tkinter.filedialog
+"""
+autopep8
+installed by using "pip3 install --upgrade autopep8"
+    need dependency, install by "pip3 install pep8"
+
+pytesseract
+installed by using "pip3 install pytesseract" in terminal
+    need dependency, install dependency by "brew install tesseract"
+"""
+
+#call with larger stack from 
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#callWithLargeStack
+def rangeSum(lo, hi):
+    if (lo > hi):
+        return 0
+    else:
+        return lo + rangeSum(lo+1, hi)
+
+def callWithLargeStack(f,*args):
+    import sys
+    import threading
+    sys.setrecursionlimit(2**14) # max recursion depth of 16384
+    isWindows = (sys.platform.lower() in ["win32", "cygwin"])
+    if (not isWindows): return f(*args) # sadness...
+    threading.stack_size(2**27)  # 64MB stack
+    # need new thread to get the redefined stack size
+    def wrappedFn(resultWrapper): resultWrapper[0] = f(*args)
+    resultWrapper = [None]
+    #thread = threading.Thread(target=f, args=args)
+    thread = threading.Thread(target=wrappedFn, args=[resultWrapper])
+    thread.start()
+    thread.join()
+    return resultWrapper[0]
 
 ################################
 #defining Stack class/Exceptions for bracket matching
@@ -97,6 +135,7 @@ def keyBindings(root):
     root.text.bind("<Command-Right>", lambda event: jumpRight(root.text,event))
     root.text.bind("<Command-Left>", lambda event: jumpLeft(root.text,event))
     root.bind("<Command-p>",lambda event: pushMode(root))
+    root.bind("<Command-i>",lambda event: addImage(root))
 
 def editBindings(root):
     root.text.bind('<Command-]>', lambda event: indentLine(root.text,event))
@@ -137,6 +176,8 @@ def initFileMenu(menuBar,root):
                 compound='left', underline=0,command=lambda:saveScript(root))
     fileMenu.add_command(label='Manage Snippet', accelerator='Command+M',
                 compound='left',underline=0,command=lambda:snippetManager(root))
+    fileMenu.add_command(label='Import from Image', accelerator='Command+I',
+                compound='left',underline=0,command=lambda:addImage(root))
     fileMenu.add_separator()
     fileMenu.add_command(label='Exit', accelerator='Command+W',
                 command=lambda:exitMessage(root))
@@ -336,7 +377,7 @@ def keyRelease(event, root):
         addTab(root.text)
     maxCharCheck(root.text)
     colorizeLine(root.text,root.text.index(INSERT).split('.')[0])
-    addComment(root.text)
+    callWithLargeStack(addComment,root.text)
     updateLineNumbers(root)
     scriptParsing(root.text.get("1.0", "insert wordstart"),root)
     giveSuggestion(root)
@@ -458,24 +499,31 @@ def unindent(text,event=None):
             text.delete("{0}.0".format(line),"{0}.4".format(line))
     return "break"
 
+#use multiple thread to speed up the comment process
 def commentLine(text,event=None):
     try:
         startLine = int(text.index("sel.first").split('.')[0])
         endLine = int(text.index("sel.last").split('.')[0])+1
-        for line in range(startLine,endLine):
-            doComment(text,line)
+        if endLine - startLine > 2:
+            difference = endLine - startLine
+            Thread(target = doComment,args=(text,startLine,
+                startLine+difference//2)).start()
+            Thread(target = doComment,args=(text,startLine+difference//2,
+                endLine)).start()
+        else:
+            doComment(text,startLine,endLine)
     except:
         line = int(text.index(INSERT).split('.')[0])
-        doComment(text,line)
-    recolorize(text)
+        doComment(text,line,line+1)
     return "break"
 
-def doComment(text,line):
-    if text.get("{}.0".format(line)) == "#":
-        text.delete("{}.0".format(line))
-    else:
-        text.insert("{}.0".format(line),"#")
-    addComment(text)
+def doComment(text,startLine,endLine):
+    for line in range(startLine,endLine):
+        if text.get("{}.0".format(line)) == "#":
+            text.delete("{}.0".format(line))
+        else:
+            text.insert("{}.0".format(line),"#")
+    recolorize(text)
 
 def tab(event,text):
     text.insert(INSERT, " " * 4)
@@ -697,7 +745,7 @@ def exitMessage(root,event=None):
 def recolorize(text):
     for line in range(1, int(text.index('end').split('.')[0])):
         colorizeLine(text,line)
-    addComment(text)
+    callWithLargeStack(addComment,text)
     tripleQuote(text)
     lineMax = 200
     if int(text.index("end").split(".")[0]) < lineMax:
@@ -746,9 +794,10 @@ def colorizeLine(text,line):
     content = text.get("{0}.0".format(line),"{0}.end".format(line))
     addTags(lineParsing(content),text,line)
 
+#recursively colorize commented lines
 def addComment(text,startIndex = "1.0"):
     startIndex = text.search("#", startIndex,stopindex=END)
-    if not startIndex: 
+    if not startIndex:
         return None
     endIndex = '{0}.end'.format(startIndex.split(".")[0])
     if "string" not in text.tag_names(startIndex):
@@ -842,7 +891,7 @@ def initWords():
             "len", "property", "type", "chr", "frozenset", "list", 
             "range", "vars", "classmethod", "getattr", "locals", 
             "repr", "zip", "compile ", "globals", "map", "reversed", 
-            "__import__", "complex", "hasattr", "max", "round", "delattr", 
+            "complex", "hasattr", "max", "round", "delattr", 
             "hash", "memoryview", "set"])
     statement = set(["print", "exec", "and", "or", "not", "<", ">",
             "=", "!", "is", "in", "*", "/", "-", "+",
@@ -961,9 +1010,9 @@ def giveSuggestion(root):
         if root.text.bbox("insert-1c"):
             bx,by,width,height = root.text.bbox("insert-1c")
             width,height = 7,15
-            length = 210
+            length = root.listbox.winfo_reqheight()
             maximum = 360
-            by = by - 210 if by > 360 else by
+            by = by - length - height if by > maximum else by
             root.listbox.place(x=bx+width,y=by+height)
             root.bind("<Command-g>",lambda event: confirmFirst(root))
             root.listbox.bind("<<TreeviewSelect>>", lambda event:
@@ -1156,5 +1205,41 @@ def exitPush(root):
     root.progressBar.destroy()
     root.text.configure(undo=True)
     root.bind("<Command-p>",lambda event: pushMode(root))
+
+################################
+#read from image
+def addImage(root):
+    img = tkinter.filedialog.askopenfilename(
+        title = "Choose an image to open",
+        filetypes = (("jpeg files","*.jpg"),("png files","*.png"),
+                    ("gif files","*.gif")))
+    try:
+        code=processCode(pytesseract.image_to_string(PIL.Image.open(img)))
+        root.text.insert(END,code)
+        recolorize(root.text)
+    except:
+        tkinter.messagebox.showinfo(title="Error",
+            message = "Sorry, Fragments Cannot recognize your image.")
+
+def processCode(code):
+    result = ""
+    indent = 0
+    for i in range(len(code.splitlines())):
+        if "def " in code.splitlines()[i]:
+            result += "    "*indent + code.splitlines()[i] + "\n"
+            indent += 1
+        elif ("if " in code.splitlines()[i] and 
+            "elif" not in code.splitlines()[i]):
+            result += "    "*indent + code.splitlines()[i] + "\n"
+            indent += 1
+        elif ("elif " in code.splitlines()[i]):
+            indent -= 1
+            result += "    "*indent + code.splitlines()[i] + "\n"
+            indent += 1
+        elif ("else" in code.splitlines()[i]):
+            indent -= 1
+            result += "    "*indent + code.splitlines()[i] + "\n"
+            indent += 1
+    return autopep8.fix_code(result)
 
 run()
