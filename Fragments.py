@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os
 import re
 import PIL
@@ -1235,6 +1236,7 @@ def addImage(root):
             root.text.insert(END,code)
             recolorize(root.text)
         except:
+            print(sys.exc_info())
             tkinter.messagebox.showinfo(title="Error",
                 message = "Sorry, Fragments Cannot recognize your image.")
 
@@ -1257,6 +1259,8 @@ def processCode(code,indentation):
                 indent -= 1
                 result += "    "*indent + currentLine + "\n"
                 indent += 1
+            else:
+                result += "    "*indent + currentLine + "\n"
     return autopep8.fix_code(result)
 
 def processImg(img,indent=None):
@@ -1264,7 +1268,7 @@ def processImg(img,indent=None):
     gray = color.convert('L')
     bw = gray.point(lambda x: 0 if x<128 else 255, '1') #conver into b/w img
     width,height = bw.size
-    if height < 350:
+    if height < 500:
         #conver image into list expression
         lst = list(bw.getdata())
         lst = [lst[i:i+width] for i in range(0, len(lst), width)]
