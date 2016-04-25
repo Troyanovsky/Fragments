@@ -2,9 +2,11 @@ import os
 import re
 import PIL
 import string
-import autopep8 
+import autopep8 #only needed if want to import from image
 import threading
-import pytesseract
+import numpy as np
+import pytesseract #only needed if want to import from image
+import tesseract_ocr #only needed if want to import from image
 from tkinter import *
 from tkinter import ttk
 from threading import Thread
@@ -13,14 +15,21 @@ from subprocess import Popen, PIPE, STDOUT
 import tkinter.messagebox,tkinter.filedialog
 """
 autopep8
-installed by using "pip3 install --upgrade autopep8"
+installed by using "pip3 install --upgrade autopep8" in terminal
     need dependency, install by "pip3 install pep8"
 
 pytesseract
 installed by using "pip3 install pytesseract" in terminal
     need dependency, install dependency by "brew install tesseract"
+
+tesseract_ocr
+installed by using "pip3 install tesseract-ocr" in terminal
+    if dependency is needed, install by
+    $ brew install --with-libtiff --with-openjpeg --with-giflib leptonica
+    $ brew install --devel --all-languages tesseract
 """
 
+################################
 #call with larger stack from 
 #http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#callWithLargeStack
 def rangeSum(lo, hi):
@@ -956,6 +965,7 @@ Command+l: Select Line
 Command+b: Run Code
 Command+f: Find/Replace
 Command+s: Save Snippet
+Command+i: Import from Image
 Command+Shift+s: Save Script
 Command+w: Exit
 Command+Right: Jump to line end
@@ -964,8 +974,7 @@ Command+]: Indent Line
 Command+[: Unindent Line
 Command+/: Comment Line
 Command+j: Join Line
-Command+z: Undo
-Command+y: Redo
+Command+z/y: Undo/Redo
 Command+g: Confirm suggestion
 Command+,: Add comma to every line"""
     tkinter.messagebox.showinfo(title="Keyboard shortcuts for Fragments",
@@ -1213,33 +1222,87 @@ def addImage(root):
         title = "Choose an image to open",
         filetypes = (("jpeg files","*.jpg"),("png files","*.png"),
                     ("gif files","*.gif")))
+    indentation = processImg(img)
     try:
-        code=processCode(pytesseract.image_to_string(PIL.Image.open(img)))
+        code=processCode(pytesseract.image_to_string(PIL.Image.open(
+                            "ocrTemp.jpg"),lang="eng"),indentation)
         root.text.insert(END,code)
         recolorize(root.text)
-    except:
-        tkinter.messagebox.showinfo(title="Error",
-            message = "Sorry, Fragments Cannot recognize your image.")
+    except UnicodeDecodeError:
+        try:
+            code = processCode(tesseract_ocr.text_for_filename(
+                                "ocrTemp.jpg"),indentation)
+            root.text.insert(END,code)
+            recolorize(root.text)
+        except:
+            tkinter.messagebox.showinfo(title="Error",
+                message = "Sorry, Fragments Cannot recognize your image.")
 
-def processCode(code):
-    result = ""
-    indent = 0
-    for i in range(len(code.splitlines())):
-        if "def " in code.splitlines()[i]:
-            result += "    "*indent + code.splitlines()[i] + "\n"
-            indent += 1
-        elif ("if " in code.splitlines()[i] and 
-            "elif" not in code.splitlines()[i]):
-            result += "    "*indent + code.splitlines()[i] + "\n"
-            indent += 1
-        elif ("elif " in code.splitlines()[i]):
-            indent -= 1
-            result += "    "*indent + code.splitlines()[i] + "\n"
-            indent += 1
-        elif ("else" in code.splitlines()[i]):
-            indent -= 1
-            result += "    "*indent + code.splitlines()[i] + "\n"
-            indent += 1
+def processCode(code,indentation):
+    result,indent = "",0
+    indentation = [] if indentation == None else indentation
+    if len(indentation) == len(code.splitlines()):
+        for i in range(len(indentation)):
+            result += indentation[i]*" "+code.splitlines()[i]+"\n"
+    else:
+        for i in range(len(code.splitlines())):
+            currentLine = code.splitlines()[i]
+            if (("def " in currentLine) or 
+                ("if " in currentLine and "elif" not in currentLine) or 
+                ("try:" in currentLine and "except " not in currentLine)):
+                result += "    "*indent + currentLine + "\n"
+                indent += 1
+            elif (("elif " in currentLine) or ("else" in currentLine) or 
+                "finally " in currentLine):
+                indent -= 1
+                result += "    "*indent + currentLine + "\n"
+                indent += 1
     return autopep8.fix_code(result)
 
-run()
+def processImg(img,indent=None):
+    color = PIL.Image.open(img)
+    gray = color.convert('L')
+    bw = gray.point(lambda x: 0 if x<128 else 255, '1') #conver into b/w img
+    width,height = bw.size
+    if height < 350:
+        #conver image into list expression
+        lst = list(bw.getdata())
+        lst = [lst[i:i+width] for i in range(0, len(lst), width)]
+        #identify the start of each row of pixel, calculate the average start  
+        # point to get the indentation level of the line
+        indent,currentBlock,blankLines = [],[],0
+        for i in range(len(lst)):
+            try:
+                currentBlock.append(lst[i].index(0))
+                blankLines = 0
+            except:
+                blankLines += 1
+            if blankLines > 4 and len(currentBlock) > 5:
+                indent.append(calculateIndentation(currentBlock))
+                blankLines,currentBlock = 0,[]
+        indent = recalculateIndent(indent)
+    bw.save("ocrTemp.jpg")
+    return indent
+
+def calculateIndentation(currentBlock):
+    stdDev = np.std(currentBlock)
+    mean = np.mean(currentBlock)
+    processedBlock = []
+    #delete the outliers
+    for n in currentBlock:
+        if abs(n - mean) <= stdDev:
+            processedBlock.append(n)
+    #calculate the indentation level
+    return (sum(processedBlock)//len(processedBlock))
+
+def recalculateIndent(indent):
+    temp = []
+    result = []
+    for n in indent:
+        temp.append(n-min(indent))
+    for n in temp:
+        result.append(round(n/10))
+    return result
+
+if __name__ == "__main__":
+    run()
