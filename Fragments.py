@@ -3,11 +3,11 @@ import os
 import re
 import PIL
 import string
-import autopep8 #only needed if want to import from image
+import autopep8
 import threading
 import numpy as np
-import pytesseract #only needed if want to import from image
-import tesseract_ocr #only needed if want to import from image
+import pytesseract  # only needed if want to import from image
+import tesseract_ocr  # only needed if want to import from image
 from tkinter import *
 from tkinter import ttk
 from threading import Thread
@@ -31,8 +31,8 @@ installed by using "pip3 install tesseract-ocr" in terminal
 """
 
 ################################
-#call with larger stack from 
-#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#callWithLargeStack
+# call with larger stack from 
+# http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#callWithLargeStack
 def rangeSum(lo, hi):
     if (lo > hi):
         return 0
@@ -56,7 +56,7 @@ def callWithLargeStack(f,*args):
     return resultWrapper[0]
 
 ################################
-#defining Stack class/Exceptions for bracket matching
+# defining Stack class/Exceptions for bracket matching
 class EmptyStackError(Exception):
     def __init__(self):
             super().__init__("Stack is empty")
@@ -109,7 +109,7 @@ class Stack(object):
             return iter(self.data)
 
 ################################
-#UI and init
+# UI and init
 def run():
     editorName = "Fragments"
     root = Tk()
@@ -137,6 +137,8 @@ def keyBindings(root):
     root.text.bind('<Command-l>', lambda event: selectLine(root.text,event))
     editBindings(root)
     root.bind("<Command-b>",lambda event: executeScript(event,root))
+    root.bind("<Command-d>",lambda event: checkStyle(root))
+    root.bind("<Command-t>",lambda event: improveStyle(root))
     root.bind("<Command-f>",lambda event: findText(root,event))
     root.bind("<Command-s>",lambda event: saveSnippet(root,event))
     root.bind("<Command-Shift-s>",lambda event: saveScript(root,event))
@@ -202,7 +204,13 @@ def initEditMenu(menuBar,root):
     pushMenu = Menu(menuBar, tearoff=0)
     pushMenu.add_command(label="Push Mode", accelerator="Command+P",
                 compound="left",underline=0,command=lambda:pushMode(root))
+    styleMenu = Menu(menuBar, tearoff=0)
+    styleMenu.add_command(label="Style Check", accelerator="Command+D",
+                compound="left",underline=0,command=lambda:checkStyle(root))
+    styleMenu.add_command(label="Improve Style", accelerator="Command+T",
+                compound="left",underline=0,command=lambda:improveStyle(root))
     menuBar.add_cascade(label='Push Mode', menu=pushMenu)
+    menuBar.add_cascade(label='Check Style', menu=styleMenu)
 
 def textCommands(editMenu,root):
     editMenu.add_command(label='Undo', accelerator='Command+Z', compound='left',
@@ -273,7 +281,8 @@ def initResult(root, resultFrame):
                            background='gray13', state='disabled',
                            foreground = "white", wrap="none")
     root.result.configure(state="normal")
-    root.result.insert("1.0","To Execute Your Script Press Command+B")
+    root.result.insert("1.0","""To Execute Your Script Press Command+B
+To Check Your Style Press Command+D""")
     root.result.configure(state="disabled")
     root.resultvsb = Scrollbar(orient="vertical", borderwidth=1,
                             command=root.result.yview)
@@ -317,7 +326,7 @@ def yview(root,*args):
     updateLineNumbers(root)
 
 ################################
-#browsing/searching snippet
+# browsing/searching snippet
 def initDirectory(root, leftFrame):
     searchFrame = Frame(leftFrame,relief="sunken")
     treeFrame = Frame(leftFrame,relief="sunken")
@@ -429,7 +438,7 @@ def addTab(text):
     text.insert("{0}.0".format(line),spaceNumber * " ")
 
 ################################
-#line number/cursor
+# line number/cursor
 def updateLineNumber(root,event=None):
     updateLineNumbers(root)
     updateCursor(root)
@@ -472,7 +481,7 @@ def maxCharCheck(text):
             text.tag_remove("exceed","{0}.0".format(line),"{}.end".format(line))
 
 ################################
-#editing features
+# editing features
 def selectAll(text,event=None):
     text.tag_add(SEL, "1.0", "end -1c")
     text.mark_set(INSERT, "1.0")
@@ -565,7 +574,7 @@ def redo(root,event=None):
     return 'break'
 
 ################################
-#text searching/replacing
+# text searching/replacing
 def findText(root,event=None):
     searchWindow = initSearchWindow(root)
     textToSearch = Entry(searchWindow, width=25)
@@ -638,10 +647,10 @@ def replaceAll(word, case, text,replaceWord):
             message = "Fill in both blanks!") 
 
 ################################
-#executing script
+# executing script
 
-#file I/O from
-#http://www.cs.cmu.edu/~112/notes/notes-strings.html#basicFileIO
+# file I/O from
+# http://www.cs.cmu.edu/~112/notes/notes-strings.html#basicFileIO
 def readFile(path):
     with open(path, "rt") as f:
         return f.read()
@@ -649,10 +658,10 @@ def readFile(path):
 def writeFile(path, contents):
     with open(path, "wt") as f:
         f.write(contents)
-#end of file I/O
+# end of file I/O
 
 def executeScript(event, root):
-    #use subprocess to get the executed result and display in the frame
+    # use subprocess to get the executed result and display in the frame
     refreshResult(root)
     script = root.text.get("1.0",END)
     writeFile("FragmentsTemp.py",script)
@@ -671,7 +680,7 @@ def refreshResult(root,output = ''):
 
 
 ################################
-#saving
+# saving
 def saveScript(root,event=None):
     fileName = tkinter.filedialog.asksaveasfilename(defaultextension=".py", 
         filetypes=[("Python Documents", "*.py")])
@@ -751,7 +760,7 @@ def exitMessage(root,event=None):
         root.destroy()
 
 ################################
-#syntax highlighting
+# syntax highlighting
 def recolorize(text):
     for line in range(1, int(text.index('end').split('.')[0])):
         colorizeLine(text,line)
@@ -913,7 +922,7 @@ def initWords():
     return definition,statement,value
 
 ################################
-#line operations
+# line operations
 def joinLines(text,event=None):
     try:
         startLine = int(text.index("sel.first").split('.')[0])
@@ -961,30 +970,24 @@ def selComplete(text,event,add):
 
 def keyShortcuts():
     shortcuts = """
-Command+a: Select All
-Command+l: Select Line
-Command+b: Run Code
-Command+f: Find/Replace
-Command+s: Save Snippet
-Command+i: Import from Image
-Command+Shift+s: Save Script
-Command+w: Exit
-Command+Right: Jump to line end
-Command+Left: Jump to line startIndex
-Command+]: Indent Line
-Command+[: Unindent Line
-Command+/: Comment Line
-Command+j: Join Line
-Command+z/y: Undo/Redo
-Command+g: Confirm suggestion
-Command+,: Add comma to every line"""
+Command+a: Select All\nCommand+l: Select Line
+Command+b: Run Code\nCommand+f: Find/Replace
+Command+s: Save Snippet\nCommand+i: Import from Image
+Command+Shift+s: Save Script\nCommand+w: Exit
+Command+Right: Jump to line end\nCommand+Left: Jump to line startIndex
+Command+]: Indent Line\nCommand+[: Unindent Line
+Command+/: Comment Line\nCommand+j: Join Line
+Command+z/y: Undo/Redo\nCommand+g: Confirm suggestion
+Command+,: Add comma to every line\nCommand+d: Check Style
+Command+t: Correct Style
+"""
     tkinter.messagebox.showinfo(title="Keyboard shortcuts for Fragments",
         message=shortcuts)
 
 ################################
-#autoComplete suggestion
+# autoComplete suggestion
 
-#parse a script to get the variable names,function names etc.
+# parse a script to get the variable names,function names etc.
 def scriptParsing(s,root):
     (parsed,word,unbalanced,possible) = initParsing()
     for c in s:
@@ -1074,7 +1077,7 @@ def reservedWords():
     return words
 
 ################################
-#snippet manager
+# snippet manager
 def snippetManager(root):
     height,width = 600,600
     manager = Toplevel(root,height=height,width=width)
@@ -1117,10 +1120,10 @@ def deleteSnippet(managerTree,root,event=None):
         return "break"
 
 ################################
-#bracket check
+# bracket check
 
-#loop through the text once and mark the unbalanced brackets using
-#the Stack defined earlier. Takes time of O(n).
+# loop through the text once and mark the unbalanced brackets using
+# the Stack defined earlier. Takes time of O(n).
 def checkBracket(text,start="1.0",end="end"):
     text.tag_remove("openBracket",start,end)
     content,stack,pairing,reverse = initBracket(text,start,end)
@@ -1156,7 +1159,7 @@ def initBracket(text,start="1.0",end="end"):
     return content,stack,pairing,reverse
 
 ################################
-#push mode
+# push mode
 def pushMode(root):
     tkinter.messagebox.showinfo(title="Enter Push Mode",
             message = """Entering Push Mode:
@@ -1217,7 +1220,7 @@ def exitPush(root):
     root.bind("<Command-p>",lambda event: pushMode(root))
 
 ################################
-#read from image
+# read from image
 def addImage(root):
     img = tkinter.filedialog.askopenfilename(
         title = "Choose an image to open",
@@ -1307,6 +1310,30 @@ def recalculateIndent(indent):
     for n in temp:
         result.append(round(n/10))
     return result
+
+################################
+# style check
+def checkStyle(root):
+    # use subprocess to get the result of style check
+    refreshResult(root)
+    script = root.text.get("1.0",END)
+    writeFile("FragmentsTemp.py",script)
+    filePath = os.path.abspath("FragmentsTemp.py")
+    cmd = 'pep8 --first {0}'.format(filePath)
+    cmdResult = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE,
+                    stderr=STDOUT, close_fds=True)
+    output = cmdResult.stdout.read().decode("UTF-8")
+    output = output.replace("{}:".format(filePath),"")
+    output = output + "\n\nUse Command+T to automatically improve your style"
+    refreshResult(root,output)
+
+def improveStyle(root):
+    refreshResult(root)
+    script = root.text.get("1.0",END)
+    improved = autopep8.fix_code(script)
+    root.text.delete("1.0","end")
+    root.text.insert("1.0",improved)
+    recolorize(root.text)
 
 if __name__ == "__main__":
     run()
