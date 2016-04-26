@@ -194,6 +194,8 @@ def initEditMenu(menuBar,root):
     textCommands(editMenu,root)
     searchAndSelection(editMenu,root)
     lineOperation(editMenu,root)
+    editMenu.add_command(label='Confirm Suggestion', accelerator='Command+G', 
+                    compound='left', command = lambda:confirmFirst(root))
     menuBar.add_cascade(label='Edit', menu=editMenu)
     pushMenu = Menu(menuBar, tearoff=0)
     pushMenu.add_command(label="Push Mode", accelerator="Command+P",
