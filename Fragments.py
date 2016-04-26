@@ -33,12 +33,6 @@ installed by using "pip3 install tesseract-ocr" in terminal
 ################################
 # call with larger stack from 
 # http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#callWithLargeStack
-def rangeSum(lo, hi):
-    if (lo > hi):
-        return 0
-    else:
-        return lo + rangeSum(lo+1, hi)
-
 def callWithLargeStack(f,*args):
     import sys
     import threading
@@ -1014,22 +1008,22 @@ def giveSuggestion(root):
     current = root.text.get("insert-1c wordstart","insert-1c wordend")
     possibleWords = []
     for word in root.words:
-        if len(current) > 1:
-            possibleWords = fuzzyMatch(current,root.words)
+        if len(current) > 1: possibleWords = fuzzyMatch(current,root.words)
     root.listbox = ttk.Treeview(root.text,selectmode="browse")
     if possibleWords:
         for item in possibleWords:
             root.listbox.insert("","end",text = item,tags= item)
         if root.text.bbox("insert-1c"):
             bx,by,width,height = root.text.bbox("insert-1c")
-            width,height = 7,15
+            width,height,maximum = 7,15,360
             length = root.listbox.winfo_reqheight()
-            maximum = 360
             by = by - length - height if by > maximum else by
             root.listbox.place(x=bx+width,y=by+height)
             root.bind("<Command-g>",lambda event: confirmFirst(root))
             root.listbox.bind("<<TreeviewSelect>>", lambda event:
                                                     confirmSelection(root))
+    else:
+        root.listbox.destroy()
 
 #use regular expression to do fuzzy mathcing when looking for suggestions
 def fuzzyMatch(current, words):
@@ -1057,6 +1051,7 @@ def confirmSelection(root):
         root.text.delete("insert-1c wordstart","insert")
         root.text.insert("insert",word+' ')
         root.text.focus_set()
+        root.unbind("<Command-g>")
         return "break"
     except:
         return "break"
@@ -1064,6 +1059,7 @@ def confirmSelection(root):
 def confirmFirst(root):
     try:
         root.listbox.selection_set(root.listbox.get_children()[0])
+        return "break"
     except:
         pass
 
@@ -1324,7 +1320,8 @@ def checkStyle(root):
                     stderr=STDOUT, close_fds=True)
     output = cmdResult.stdout.read().decode("UTF-8")
     output = output.replace("{}:".format(filePath),"")
-    output = output + "\n\nUse Command+T to automatically improve your style"
+    output = output + """\n\nUse Command+T to automatically improve your style.
+Use Command+B to run your code."""
     refreshResult(root,output)
 
 def improveStyle(root):
