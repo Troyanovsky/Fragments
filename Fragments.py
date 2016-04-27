@@ -4,7 +4,7 @@ import re
 import PIL
 import string
 import autopep8
-import threading
+import webbrowser
 import numpy as np
 import pytesseract  # only needed if want to import from image
 import tesseract_ocr  # only needed if want to import from image
@@ -28,12 +28,18 @@ installed by using "pip3 install tesseract-ocr" in terminal
     if dependency is needed, install by
     $ brew install --with-libtiff --with-openjpeg --with-giflib leptonica
     $ brew install --devel --all-languages tesseract
+
+numpy
+installed by using "pip3 install numpy" in terminal
+
+PIL
+installed by using "pip3 install PIL" in terminal
 """
 
 ################################
-# call with larger stack from 
+# call with larger stack from
 # http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#callWithLargeStack
-def callWithLargeStack(f,*args):
+def callWithLargeStack(f, *args):
     import sys
     import threading
     sys.setrecursionlimit(2**14) # max recursion depth of 16384
@@ -205,6 +211,8 @@ def initEditMenu(menuBar,root):
                 compound="left",underline=0,command=lambda:checkStyle(root))
     styleMenu.add_command(label="Improve Style", accelerator="Command+T",
                 compound="left",underline=0,command=lambda:improveStyle(root))
+    styleMenu.add_command(label="About Style", compound="left",underline=0,
+                command=lambda: openUrl())
     menuBar.add_cascade(label='Push Mode', menu=pushMenu)
     menuBar.add_cascade(label='Check Style', menu=styleMenu)
 
@@ -248,6 +256,8 @@ def initAboutMenu(menuBar,root):
     aboutMenu = Menu(menuBar, tearoff=0)
     aboutMenu.add_command(label='About',command = aboutMessage)
     aboutMenu.add_command(label='Key Board Commands',command=keyShortcuts)
+    aboutMenu.add_command(label='Fragments on Github',underline = 7,
+        command= lambda: openUrl("https://github.com/Troyanovsky/Fragments"))
     menuBar.add_cascade(label='About', menu=aboutMenu)
 
 def initFrames(root):
@@ -523,8 +533,8 @@ def commentLine(text,event=None):
             difference = endLine - startLine
             Thread(target = doComment,args=(text,startLine,
                 startLine+difference//2)).start()
-            Thread(target = doComment,args=(text,startLine+difference//2,
-                endLine)).start()
+            Thread(target = doComment,args=(text,
+                startLine+difference//2,endLine)).start()
         else:
             doComment(text,startLine,endLine)
     except:
@@ -1333,6 +1343,10 @@ def improveStyle(root):
     root.text.delete("1.0","end")
     root.text.insert("1.0",improved)
     recolorize(root.text)
+
+def openUrl(url=None):
+    url = "https://www.python.org/dev/peps/pep-0008/" if url == None else url
+    webbrowser.open_new(url)
 
 if __name__ == "__main__":
     run()
