@@ -6,6 +6,9 @@ What is Fragments:
 Fragments is a script editor that allows users to store and reuse their code snippets
 easily. (Only support Mac OS)
 
+Video:
+
+https://youtu.be/UwbHcelVWm8
 
 Installation:
 
