@@ -1,0 +1,8 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#recursiveMath
+def power(base, expt):
+    # assume expt is non-negative integer
+    if (expt == 0):
+        return 1
+    else:
+        return base * power(base, expt-1)
+

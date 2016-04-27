@@ -1,0 +1,7 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#recursiveMath
+def rangeSum(lo, hi):
+    if (lo > hi):
+        return 0
+    else:
+        return lo + rangeSum(lo+1, hi)
+

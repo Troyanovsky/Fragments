@@ -1,0 +1,8 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part1.html
+def isPrime(n, factor=2):
+    if (n < 2): return False
+    elif (factor*factor > n): return True
+    elif (n % factor == 0): return False
+    else: return isPrime(n, factor+1)
+
+

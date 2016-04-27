@@ -1,0 +1,32 @@
+#from 15112 hw 3
+def getRows(encodedMessage):    #read the rows of the message
+    rows = ''
+    for c in encodedMessage:
+        if c in string.digits:
+            rows += c
+    return int(rows)
+
+def getEncodedMessage(encodedMessage): #get only the characters
+    result = ''
+    for c in encodedMessage:
+        if c not in string.digits:
+            result += c
+    return result
+
+def decodeRightLeftCipher(encodedMessage):
+    rows = getRows(encodedMessage)
+    encodedMessage = getEncodedMessage(encodedMessage)
+    columns = int(len(encodedMessage)/rows)   #calculate the rows of the grid
+    temp = ''
+    for i in range(1,columns+1):
+        for j in range(1,rows+1):
+            if j % 2 != 0:     #even rows and odd rows have different algorithm
+                temp += encodedMessage[(j-1)*columns+i-1]
+            else:
+                temp += encodedMessage[j*columns-i]
+    result = ''
+    for c in temp:
+        if c in string.ascii_uppercase:
+            result += c
+    return result
+    

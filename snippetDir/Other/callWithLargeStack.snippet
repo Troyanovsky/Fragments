@@ -1,0 +1,16 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#recursiveMath
+def callWithLargeStack(f,*args):
+    import sys
+    import threading
+    sys.setrecursionlimit(2**14) # max recursion depth of 16384
+    isWindows = (sys.platform.lower() in ["win32", "cygwin"])
+    if (not isWindows): return f(*args) # sadness...
+    threading.stack_size(2**27)  # 64MB stack
+    # need new thread to get the redefined stack size
+    def wrappedFn(resultWrapper): resultWrapper[0] = f(*args)
+    resultWrapper = [None]
+    #thread = threading.Thread(target=f, args=args)
+    thread = threading.Thread(target=wrappedFn, args=[resultWrapper])
+    thread.start()
+    thread.join()
+    return resultWrapper[0]

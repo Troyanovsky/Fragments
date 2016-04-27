@@ -1,0 +1,24 @@
+#from 15112 hw 3
+def addMissingChar(s,n):     #add the missing characters in reverse alphabet
+    lowercase = reverseString(string.ascii_lowercase)
+    for i in range(0,n):
+        s += lowercase[i%len(string.ascii_lowercase)]
+    return s
+
+def reverseString(s):
+    return s[::-1]
+
+def encodeRightLeftCipher(message, rows):
+    columns = math.ceil(len(message)/rows)
+    NumberOfMissingChar = rows - len(message) % rows
+    result = str(rows)
+    message = addMissingChar(message,NumberOfMissingChar) #add missing grid
+    for i in range(1,rows + 1):
+        temp = ''
+        for j in range(1,columns+1):
+            temp += message[rows*(j-1)+i-1] #get content of every row
+        if i % 2 == 0:
+            temp = reverseString(temp)  #read backwards on every second row
+        result += temp
+    return result
+

@@ -1,0 +1,6 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part1.html
+def digitSum(n):
+    if (n < 0): return digitSum(abs(n))
+    elif (n < 10): return n
+    else: return (n%10) + digitSum(n//10)
+

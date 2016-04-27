@@ -1,0 +1,7 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#recursiveMath
+def interleave(list1, list2):
+    # assume list1 and list2 are same-length lists
+    if (list1 == []):
+        return []
+    else:
+        return [list1[0] , list2[0]] + interleave(list1[1:], list2[1:])

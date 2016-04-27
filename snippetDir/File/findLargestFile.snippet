@@ -1,0 +1,21 @@
+#from 15112 hw 9
+from os import listdir
+from os.path import isfile, isdir, getsize, join
+
+def largestFile(path, largest = ("",0)):
+    if listdir(path) == []: #return largest file and its size when in empty dir
+        return largest
+    else:
+        for file in listdir(path): #loop through every file and folder
+            if isfile(join(path,file)):
+                if (getsize(join(path,file)) > largest[1] and 
+                    '.DS_Store' not in file): #ignore the ".DS_Store" file
+                    largest = (join(path,file),getsize(join(path,file)))
+            elif isdir(join(path,file)): #recursive case
+                largest = largestFile(join(path,file),largest)
+        return largest
+
+def findLargestFile(path): #wrapper function
+    largest = largestFile(path)
+    return largest[0]
+

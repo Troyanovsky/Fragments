@@ -1,0 +1,22 @@
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+
+def scraper(url,visited = None,depth = 0):
+    visited = set() if visited == None else visited
+    if depth >= 2:
+        return visited
+    else:
+        soup = BeautifulSoup(urlopen(url).read().decode("UTF-8"),"lxml")
+        for link in soup.find_all('a'):
+            href = link.get('href')
+            if href not in visited:
+                visited.add(href)
+                try:
+                    visited = scraper(href,visited,depth+1)
+                except:
+                    continue
+            if "gif" in href:
+                print(href)
+        return visited
+
+scraper("http://cmu.edu")

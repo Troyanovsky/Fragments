@@ -1,0 +1,8 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html#recursiveMath
+def listSum(L):
+    if (len(L) == 0):
+        return 0
+    else:
+        return L[0] + listSum(L[1:])
+
+

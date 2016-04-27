@@ -1,0 +1,21 @@
+#http://www.cs.cmu.edu/~112/notes/notes-1d-lists-examples.html#sorting
+####################################################
+# swap
+####################################################
+
+def swap(a, i, j):
+    (a[i], a[j]) = (a[j], a[i])
+
+####################################################
+# selectionSort
+####################################################
+
+def selectionSort(a):
+    n = len(a)
+    for startIndex in range(n):
+        minIndex = startIndex
+        for i in range(startIndex+1, n):
+            if (a[i] < a[minIndex]):
+                minIndex = i
+        swap(a, startIndex, minIndex)
+

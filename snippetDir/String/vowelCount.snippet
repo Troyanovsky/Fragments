@@ -1,0 +1,8 @@
+#http://www.cs.cmu.edu/~112/notes/notes-recursion-part1.html
+def vowelCount(s):
+    if (s == ""): return 0
+    else:
+        thisCount = 1 if (s[0].upper() in "AEIOU") else 0
+        restCount = vowelCount(s[1:])
+        return thisCount + restCount
+

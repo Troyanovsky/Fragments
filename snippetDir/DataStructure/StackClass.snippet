@@ -1,0 +1,51 @@
+#simple stack class
+class EmptyStackError(Exception):
+    def __init__(self):
+            super().__init__("Stack is empty")
+
+class FullStackError(Exception):
+        def __init__(self):
+                super().__init__("Stack is full")
+
+class Stack(object):
+        def __init__(self, maxSize=100):
+            self.maxSize = maxSize
+            self.data = []
+
+        def isEmpty(self):
+            if self.size() == 0:
+                return True
+            else:
+                return False
+
+        def isFull(self):
+            if self.size() == self.maxSize:
+                return True
+            else:
+                return False
+
+        def push(self, data):
+            if not self.isFull():
+                self.data.append(data)
+                return data
+            else:
+                raise FullStackError()
+
+        def pop(self):
+            if not self.isEmpty():
+                output = self.data[self.size()-1]
+                del self.data[self.size()-1]
+                return output
+            else:
+                raise EmptyStackError()  
+
+        def size(self):
+            return len(self.data)
+
+        def peek(self):
+            if self.isEmpty():
+                raise EmptyStackError
+            return self.data[self.size()-1]
+
+        def __iter__(self):
+            return iter(self.data)
