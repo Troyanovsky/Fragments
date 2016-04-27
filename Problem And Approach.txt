@@ -1,0 +1,96 @@
+15112
+Term Project Deliverable 3
+Guodong Zhao
+
+(Expand the window of the text editor to see a better arrangement)
+
+Main Goal:
+
+This program, apart from being an text editor, tries to provide the user an easy way 
+to store their code snippets and reuse them later.
+
+Breakdown:
+
+1. UI. The UI is designed using the tkinter library python has. The widgets used 
+include Text,Menu,Frame,Canvas,Scrollbar,Label,Toplevel,Entry,messagebox,Treeview, 
+fileDialog, progress bar etc.
+
+	1.1 Snippet Directory. To store the snippets, the program creates a directory 
+	which stores the user’s snippets according to the tag of the snippet. 
+	Users can easily access the directory in a treeview tree to the left. 
+	The search input is realized through the entry widget, when user inputs a 
+	letter, the treeview is refreshed. A scrollbar is used for scrolling the 
+	tree view.
+
+	1.2 Line Number. The line number area is a canvas with line numbers draw in 
+	it. Each time when there is a change in the main text editor, the line number
+	area is updated.
+
+	1.3 Main Text editor area. The main text editor is a Text widget with a lot 
+	of customization such as syntax highlighting, auto-suggestion and many other
+	text editing features. Tow scrollbars are used to scroll the area.
+
+	1.4 Cursor Label. The cursor label is a Label widget in the main text area,
+	it shows the position of the cursor and is updated each time cursor moves.
+
+	1.5 Result Area. Result area is a Text widget that users cannot directly
+	modify. When users execute their code, the result area will show the 
+	executed result of the code.
+
+2. Approach to main features.
+	
+	2.1 Syntax highlighting. First, the program will parse the code,
+	breaking the code down into small parts. Then the program will
+	analyze the syntactic role of each part. After analysis, the program
+	will give tags to each part and highlight them in the Text widget.
+	To achieve a shorter highlighting time and more accuracy, each line is 
+	recolorized after a key press and all the code is recolorized after a 
+	couple of seconds.
+		
+	2.2 Bracket Matching. The bracket matching uses a stack to store the 
+	brackets. When looping, if there is a front bracket, store in the stack;
+	if there is a closing bracket, see if there is a matching one in the stack,
+	if there is not, the bracket will be highlighted.
+
+	2.3 Text searching and replacing. Loop through the text to find matchings
+	based on user input and the state of ignoring-case option.
+
+	2.4 Auto-complete suggestion. When user inputs, the program will try to match
+	the current word to the word dictionary which contains built-in variables,
+	functions and user defined variables and functions. The matching process is 
+	fuzzy matching. It is based on regular expression, so that the user can input 
+	segments of the word and the program will still give suggestion.
+	(For more detailed description of the algorithm, please see 
+	“Update Deliverable 3.txt” in the main folder.)
+
+	2.5 Snippet/script saving. Uses file I/O and file dialogs. The user can save
+	snippet or script very easily using the file dialog.
+
+	2.6 Push mode. The editor has a push mode in which the user has to keep 
+	typing or the last line of code will disappear. The user first chooses a time
+	that he or she wants to code and then the program will start monitoring the 
+	idle time.
+	If idle time is longer than 4 seconds, the last line of code will disappear.
+	A progress bar will appear in push mode to indicate the time left.
+
+	2.7 Import from Image. Users are able to import snippets from images. When 
+	the user chooses an image, the program will first process the image into 
+	black and white (binary) image and then use optical character recognition to 
+	read the code. After reading the code, the program will calculate the 
+	indentation level using an algorithm I designed and then the program will 
+	check the grammar of the code and improve the style.
+
+	2.8 Style Check and Improvement. Read the script in the main text area and
+	check if the script complies with PEP8 python style. Then if the user selects
+	improve style, the program will modify the script to comply with the style
+	guide. 
+	(For more information on PEP8, visit: https://www.python.org/dev/peps/pep-0008/)
+
+	2.9 Script Running. Script running is very useful for debugging. The program
+	uses subprocess to run the user’s code and show the result in the result area
+	to the right of the program, 
+
+	2.9 Text editing. The text editing features such as selecting line, selecting 
+	all, comment line, indent line, unindent line are based on string processing. 
+	To increase the speed of large file processing, the program utilized multi-
+	threading to handle large files.
