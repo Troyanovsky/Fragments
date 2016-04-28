@@ -1,16 +1,15 @@
-# Fragments
-# Guodong Zhao
+# Fragments by Guodong Zhao
 
-What is Fragments:
+#What is Fragments:
 
 Fragments is a script editor that allows users to store and reuse their code snippets
 easily. (Only support Mac OS)
 
-Video:
+#Video:
 
 https://youtu.be/UwbHcelVWm8
 
-Installation:
+#Installation:
 
   	Make sure you have Python3 in your PATH.
   
@@ -38,7 +37,7 @@ Installation:
 	installed by using "pip3 install PIL" in terminal
 
 
-Usage:
+#Usage:
 
 	Open terminal, go to the directory you are storing the Fragments.py, and then
 	use command “python3 Fragments.py” to run the file.
