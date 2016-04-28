@@ -1,9 +1,9 @@
-# Fragments by Guodong Zhao
+# Fragments Snippet Editor by Guodong Zhao
 
 #What is Fragments:
 
 Fragments is a script editor that allows users to store and reuse their code snippets
-easily. (Only support Mac OS)
+easily. (Only support Mac OS and python3)
 
 #Video:
 
