@@ -923,7 +923,7 @@ def initWords():
             "|", "^", "%", "~","from","import","return",
             "assert", "pass", "del", "yield", "raise", "break", 
             "continue", "global", "nonlocal","for","while","if","else",
-            "try","except","finally","with","elif"])
+            "try","except","finally","with","elif","as"])
     value = set(["None", "True", "False", "NotImplemented", "Ellipsis"])
     return definition,statement,value
 
