@@ -1,0 +1,67 @@
+15112
+Term Project Deliverable 3
+Guodong Zhao
+
+(Expand the window of the text editor to see a better arrangement)
+
+Deliverable 3 Updates:
+
+1. Updated the auto-complete suggestion by using non-greedy regular expression:
+Now the suggestions can do fuzzy matching and return suggestions in a ranked
+order. (Fuzzy matching is better than Sublime when user inputs discrete segments of a word.)
+How it works:
+    First, I parse the script except the current word user is typing
+    and return a set containing all the parsed words. (This list will contain 
+    reserved words, user defined function names, variables, excluding strings.)
+    E.g. parsed = ["numberSelect","selectWord"]
+
+    Then, I convert the current word user is typing into regular expression. For 
+    example, when user type "sel", my script will convert it into a non-greedy regular
+    expression "s.*?e.*?l".
+
+    The reason I use non-greedy regular expression is that we want the desired 
+    rank to be in the order ["selectWord","numberSelect"] when the user inputs "sel". 
+    (In greedy expression "s.*e.*l", the order will be ["numberSelect","selectWord"] 
+    because there are more "e" in "numberSelect" than in "selectWord")
+
+    When I compile the regex, I also ignored case, so that the suggestion can give
+    back suggestions no matter the user inputs upper letter case or lower case.
+	
+    Then I will rank the suggestions according to the length of matching, compact 
+    matching, the index of the first matching. After ranking the suggestion can do 
+    fuzzy matching and return the results in the desired order.
+
+2. Added push mode. In push mode, after setting the time, user will have to keep coding. If the idle time is longer than 4 seconds, the last line of code will be deleted and cannot be retrieved. This mode has a progress bar on the top to indicate the user’s progress.
+
+3. Added bracket matching using stack and optimized the algorithm so that it will work on longer script (tested on at least 1000 lines of code) without very noticeable lag (before optimization it takes three to five seconds to check even it is on the order of O(n)).
+
+4. Used multiple threading to greatly decrease the time the comment process for large files. Now can comment script more than 1000 lines without being not responding. 
+(In earlier versions, the application would crash when user try to comment large files.)
+
+5. Added “Import from Image” option, in which user can choose an image with code and the app will try to recognize the code in the image and add it to the editor. The program recognizes the image that the user chooses and calculate the indentation of the lines through an algorithm I designed that will minimize the error of indentation levels.(Can be tested using the images in the Test Pictures folder.)
+
+6. Added Style Check and Style Improvement. Now the program can help users check their style and automatically improve their style according to the PEP8 style.
+
+7. Added snippet manager so the users can delete their snippet in the application.
+
+8. Updated the algorithm for syntax highlighting so that it works on longer script. Syntax highlighting is tested on script longer than 2000 lines without noticeable lag.
+
+
+
+
+
+________________________________________
+Older Version Updates:
+Deliverable 2:
+1. Added Text replace
+2. Added snippet saving
+3. Added script saving
+4. Added snippet treeview
+5. Added snippet treeview search
+6. Added exit
+7. Added script execution result
+8. Added syntax highlighting
+9. Added line number
+10.Added rows and column(cursor label)
+11.Added auto-complete
+12.Added line joining,cursor jumping
